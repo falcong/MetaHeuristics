@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Metaheuristics Problems 
 =================
 
@@ -23,3 +24,9 @@ To execute the localization problem
 # Documentation
 ---------------
 find the problems deciption in doc/Trabajo.pdf
+=======
+MetaHeuristics
+==============
+
+Aplicación en Paradiseo
+>>>>>>> b4b06a940fd918c6943dfad28a8ddfa5195e4e35
