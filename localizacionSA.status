@@ -1,0 +1,11 @@
+
+### GENERAL ########################################################################
+# --help=0                                 # -h : Prints this message
+# --stopOnUnknownParam=1                   # Stop if unkown param entered
+# --seed=1415737024                        # -S : Random number seed
+
+### PERSISTENCE ####################################################################
+# --status=/home/fizco/Documents/Practica Paradiseo/localizacionSA.status # Status file
+
+### REPRESENTATION #################################################################
+# --vecSize=8                              # -V : Genotype size

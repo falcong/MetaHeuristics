@@ -1,0 +1,7 @@
+ParadisEO/build
+CMakeCache.txt
+localizacion
+Makefile
+cmake_install.cmake
+.idea
+CMakeFiles
