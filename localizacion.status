@@ -2,7 +2,7 @@
 ### GENERAL ########################################################################
 # --help=0                                 # -h : Prints this message
 # --stopOnUnknownParam=1                   # Stop if unkown param entered
-# --seed=1415995955                        # -S : Random number seed
+# --seed=1416706812                        # -S : Random number seed
 
 ### PERSISTENCE ####################################################################
 # --status=/home/fizco/Documents/Practica Paradiseo/localizacion.status # Status file
