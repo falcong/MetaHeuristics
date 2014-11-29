@@ -1,15 +1,15 @@
 //-----------------------------------------------------------------------------
-/** testSimulatedAnnealing.cpp
+/** VNS.cpp
  *
- * SV - 29/03/10
- * JH - 20/04/10
+ * SV - 20/08/10
+ * JH - 20/08/10
  */
 //-----------------------------------------------------------------------------
 
 // standard includes
 #define HAVE_SSTREAM
 
-#include <stdexcept>  // runtime_error 
+#include <stdexcept>  // runtime_error
 #include <iostream>   // cout
 #include <sstream>  // ostrstream, istrstream
 #include <fstream>
@@ -34,11 +34,23 @@ using namespace std;
 
 //Neighbors and Neighborhoods
 #include <problems/permutation/moShiftNeighbor.h>
-#include <neighborhood/moRndWithReplNeighborhood.h>
+#include <problems/permutation/moIndexedSwapNeighbor.h>
+#include <neighborhood/moIndexNeighbor.h>
+#include <neighborhood/moRndWithoutReplNeighborhood.h>
+#include <neighborhood/moOrderNeighborhood.h>
+#include <explorer/moVNSexplorer.h>
+#include <neighborhood/moBackwardVectorVNSelection.h>
+#include <neighborhood/moForwardVectorVNSelection.h>
+#include <neighborhood/moRndVectorVNSelection.h>
 
 //Algorithm and its components
 #include <coolingSchedule/moCoolingSchedule.h>
-#include <algo/moSA.h>
+#include <algo/moSimpleHC.h>
+#include <algo/moLocalSearch.h>
+#include <algo/moVNS.h>
+//#include <algo/moSimpleVNS.h>
+
+#include <continuator/moTimeContinuator.h>
 
 //comparator
 #include <comparator/moSolNeighborComparator.h>
@@ -50,9 +62,11 @@ using namespace std;
 #include <utils/eoFileMonitor.h>
 #include <continuator/moCounterMonitorSaver.h>
 
-//INCLUYO MI CABECERA CON LA CLASE DONDE SE LEE EL FICHERO DE ENTRADA
-//#include "readFile.h"
+#include <eoSwapMutation.h>
+#include <eoShiftMutation.h>
 
+#include <acceptCrit/moBetterAcceptCrit.h>
+#include <acceptCrit/moAlwaysAcceptCrit.h>
 
 //-----------------------------------------------------------------------------
 // Define types of the representation solution, different neighbors and neighborhoods
@@ -60,7 +74,10 @@ using namespace std;
 typedef eoInt<eoMinimizingFitness> Queen; //Permutation (Queen's problem representation)
 
 typedef moShiftNeighbor<Queen> shiftNeighbor; //shift Neighbor
-typedef moRndWithReplNeighborhood<shiftNeighbor> rndShiftNeighborhood; //rnd shift Neighborhood (Indexed)
+typedef moIndexedSwapNeighbor <Queen> swapNeighbor;
+typedef moIndexNeighbor<Queen> indexNeighbor;
+typedef moRndWithoutReplNeighborhood<shiftNeighbor> shiftNeighborhood; //rnd shift Neighborhood (Indexed)
+typedef moRndWithoutReplNeighborhood<swapNeighbor> swapNeighborhood;
 
 void main_function(int argc, char **argv)
 {
@@ -112,10 +129,6 @@ void main_function(int argc, char **argv)
     rng.reseed(seed);
 
 
-
-
-    // the fitness function is just the number of 1 in the bit string
-    
     /* =========================================================
      *
      * Eval fitness function
@@ -125,8 +138,6 @@ void main_function(int argc, char **argv)
     dataFile.readData(argv); //Leo datos del fichero que se le pasa por parametro
     queenEval<Queen> fullEval; //Se crea la clase fullEval de tipo queenEval
     fullEval<<dataFile; //Paso los datos de mi clase fichero a la clase fullEval
-
-
     //queenEval<Queen> fullEval;
 
 
@@ -138,8 +149,6 @@ void main_function(int argc, char **argv)
 
     eoInitPermutation<Queen> init(dataFile.getAlmacenes());
 
-    
-    
     /* =========================================================
      *
      * evaluation of a neighbor solution
@@ -147,6 +156,7 @@ void main_function(int argc, char **argv)
      * ========================================================= */
 
     moFullEvalByCopy<shiftNeighbor> shiftEval(fullEval);
+    moFullEvalByCopy<swapNeighbor> swapEval(fullEval);
 
     /* =========================================================
      *
@@ -154,7 +164,8 @@ void main_function(int argc, char **argv)
      *
      * ========================================================= */
 
-    rndShiftNeighborhood rndShiftNH((dataFile.getAlmacenes()-1) * (dataFile.getAlmacenes()-1));
+    shiftNeighborhood shiftNH((dataFile.getAlmacenes()-1) * (dataFile.getAlmacenes()-1));
+    swapNeighborhood swapNH(dataFile.getAlmacenes() * (dataFile.getAlmacenes()-1) / 2);
 
     /* =========================================================
      *
@@ -162,7 +173,29 @@ void main_function(int argc, char **argv)
      *
      * ========================================================= */
 
-    moSA<shiftNeighbor> localSearch1(rndShiftNH, fullEval, shiftEval);
+    moSimpleHC<shiftNeighbor> ls1(shiftNH, fullEval, shiftEval);
+    moSimpleHC<swapNeighbor> ls2(swapNH, fullEval, swapEval);
+
+    eoSwapMutation<Queen> swapMut;
+    eoShiftMutation<Queen> shiftMut;
+
+    //    moForwardVectorVNSelection<Queen> selectNH(ls1, shiftMut, true);
+    //    moBackwardVectorVNSelection<Queen> selectNH(ls1, shiftMut, true);
+    moRndVectorVNSelection<Queen> selectNH(ls1, shiftMut, true);
+
+    selectNH.add(ls2, swapMut);
+
+    moAlwaysAcceptCrit<shiftNeighbor> acceptCrit;
+
+    //    moVNSexplorer<shiftNeighbor> explorer(selectNH, acceptCrit);
+
+    moTimeContinuator<shiftNeighbor> cont(3);
+
+    //    moLocalSearch<shiftNeighbor> vns(explorer, cont, fullEval);
+    moVNS<shiftNeighbor> vns(selectNH, acceptCrit, fullEval, cont);
+
+   /* moSimpleVNS<shiftNeighbor> svns(ls1, shiftMut, fullEval, cont);
+    svns.add(ls2, swapMut);*/
 
     /* =========================================================
      *
@@ -170,69 +203,78 @@ void main_function(int argc, char **argv)
      *
      * ========================================================= */
 
-    Queen solution1, solution2;
+	Queen sol;
 
-    init(solution1);
+	init(sol);
 
-    fullEval(solution1);
-    
-    //cout <<"Aqui llego" << endl;
+	fullEval(sol);
 
-    std::cout << "#########################################" << std::endl;
-    std::cout << "initial solution1: " << solution1 << std::endl ;
+	std::cout << "#########################################" << std::endl;
+	std::cout << "initial sol: " << sol << std::endl ;
 
-    localSearch1(solution1);
-    
-    
+	vns(sol);
 
-    std::cout << "final solution1: " << solution1 << std::endl ;
-    std::cout << "#########################################" << std::endl;
+	std::cout << "final sol: " << sol << std::endl ;
+	std::cout << "#########################################" << std::endl;
 
+	init(sol);
 
-    /* =========================================================
-     *
-     * the cooling schedule of the process
-     *
-     * ========================================================= */
+	fullEval(sol);
 
-    // initial temp, factor of decrease, number of steps without decrease, final temp.
-    moSimpleCoolingSchedule<Queen> coolingSchedule(1, 0.9, 100, 0.01);
+	std::cout << "#########################################" << std::endl;
+	std::cout << "initial sol: " << sol << std::endl ;
 
-    /* =========================================================
-     *
-     * Comparator of neighbors
-     *
-     * ========================================================= */
+	//svns(sol);
 
-    moSolNeighborComparator<shiftNeighbor> solComparator;
-
-    /* =========================================================
-     *
-     * Example of Checkpointing
-     *
-     * ========================================================= */
-
-    moTrueContinuator<shiftNeighbor> continuator;//always continue
-    moCheckpoint<shiftNeighbor> checkpoint(continuator);
-    moFitnessStat<Queen> fitStat;
-    checkpoint.add(fitStat);
-    eoFileMonitor monitor("fitness.out", "");
-    moCounterMonitorSaver countMon(100, monitor);
-    checkpoint.add(countMon);
-    monitor.add(fitStat);
-
-    moSA<shiftNeighbor> localSearch2(rndShiftNH, fullEval, shiftEval, coolingSchedule, solComparator, checkpoint);
-
-    init(solution2);
-    fullEval(solution2);
-
-    std::cout << "#########################################" << std::endl;
-    std::cout << "initial solution2: " << solution2 << std::endl ;
-
-    localSearch2(solution2);
-
-    std::cout << "final solution2: " << solution2 << std::endl ;
-    std::cout << "#########################################" << std::endl;
+	std::cout << "final sol: " << sol << std::endl ;
+	std::cout << "#########################################" << std::endl;
+//
+//
+//    /* =========================================================
+//     *
+//     * the cooling schedule of the process
+//     *
+//     * ========================================================= */
+//
+//    // initial temp, factor of decrease, number of steps without decrease, final temp.
+//    moSimpleCoolingSchedule<Queen> coolingSchedule(1, 0.9, 100, 0.01);
+//
+//    /* =========================================================
+//     *
+//     * Comparator of neighbors
+//     *
+//     * ========================================================= */
+//
+//    moSolNeighborComparator<shiftNeighbor> solComparator;
+//
+//    /* =========================================================
+//     *
+//     * Example of Checkpointing
+//     *
+//     * ========================================================= */
+//
+//    moTrueContinuator<shiftNeighbor> continuator;//always continue
+//    moCheckpoint<shiftNeighbor> checkpoint(continuator);
+//    moFitnessStat<Queen> fitStat;
+//    checkpoint.add(fitStat);
+//    eoFileMonitor monitor("fitness.out", "");
+//    moCounterMonitorSaver countMon(100, monitor);
+//    checkpoint.add(countMon);
+//    monitor.add(fitStat);
+//
+//    //moSA<shiftNeighbor> localSearch2(rndShiftNH, fullEval, shiftEval, coolingSchedule, solComparator, checkpoint);
+//
+//    init(solution2);
+//
+//    fullEval(solution2);
+//
+//    std::cout << "#########################################" << std::endl;
+//    std::cout << "initial solution2: " << solution2 << std::endl ;
+//
+//    //localSearch2(solution2);
+//
+//    std::cout << "final solution2: " << solution2 << std::endl ;
+//    std::cout << "#########################################" << std::endl;
 }
 
 // A main that catches the exceptions

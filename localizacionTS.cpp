@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------------
-/** testSimulatedAnnealing.cpp
+/** testSimpleHC.cpp
  *
- * SV - 29/03/10
- * JH - 20/04/10
+ * SV - 12/01/10
+ * JH - 03/05/10
  */
 //-----------------------------------------------------------------------------
 
@@ -34,33 +34,22 @@ using namespace std;
 
 //Neighbors and Neighborhoods
 #include <problems/permutation/moShiftNeighbor.h>
-#include <neighborhood/moRndWithReplNeighborhood.h>
+#include <neighborhood/moOrderNeighborhood.h>
 
 //Algorithm and its components
-#include <coolingSchedule/moCoolingSchedule.h>
-#include <algo/moSA.h>
+#include <algo/moTS.h>
 
-//comparator
-#include <comparator/moSolNeighborComparator.h>
-
-//continuators
-#include <continuator/moTrueContinuator.h>
-#include <continuator/moCheckpoint.h>
-#include <continuator/moFitnessStat.h>
-#include <utils/eoFileMonitor.h>
-#include <continuator/moCounterMonitorSaver.h>
-
-//INCLUYO MI CABECERA CON LA CLASE DONDE SE LEE EL FICHERO DE ENTRADA
-//#include "readFile.h"
+//mo eval
+#include <eval/moFullEvalByModif.h>
+#include <eval/moFullEvalByCopy.h>
 
 
-//-----------------------------------------------------------------------------
-// Define types of the representation solution, different neighbors and neighborhoods
+// REPRESENTATION
 //-----------------------------------------------------------------------------
 typedef eoInt<eoMinimizingFitness> Queen; //Permutation (Queen's problem representation)
 
 typedef moShiftNeighbor<Queen> shiftNeighbor; //shift Neighbor
-typedef moRndWithReplNeighborhood<shiftNeighbor> rndShiftNeighborhood; //rnd shift Neighborhood (Indexed)
+typedef moOrderNeighborhood<shiftNeighbor> orderShiftNeighborhood; //order shift Neighborhood (Indexed)
 
 void main_function(int argc, char **argv)
 {
@@ -76,6 +65,7 @@ void main_function(int argc, char **argv)
     // For each parameter, define Parameter, read it through the parser,
     // and assign the value to the variable
 
+    // seed
     eoValueParam<uint32_t> seedParam(time(0), "seed", "Random number seed", 'S');
     parser.processParam( seedParam );
     unsigned seed = seedParam.value();
@@ -84,6 +74,16 @@ void main_function(int argc, char **argv)
     eoValueParam<unsigned int> vecSizeParam(8, "vecSize", "Genotype size", 'V');
     parser.processParam( vecSizeParam, "Representation" );
     unsigned vecSize = vecSizeParam.value();
+
+    // size tabu list
+    eoValueParam<unsigned int> sizeTabuListParam(7, "sizeTabuList", "size of the tabu list", 'T');
+    parser.processParam( sizeTabuListParam, "Search Parameters" );
+    unsigned sizeTabuList = sizeTabuListParam.value();
+
+    // time Limit
+    eoValueParam<unsigned int> timeLimitParam(1, "timeLimit", "time limits", 'T');
+    parser.processParam( timeLimitParam, "Search Parameters" );
+    unsigned timeLimit = timeLimitParam.value();
 
     // the name of the "status" file where all actual parameter values will be saved
     string str_status = parser.ProgramName() + ".status"; // default value
@@ -108,38 +108,51 @@ void main_function(int argc, char **argv)
      * ========================================================= */
 
     //reproducible random seed: if you don't change SEED above,
-    // you'll always get the same result, NOT a random run
+    // you'll aways get the same result, NOT a random run
     rng.reseed(seed);
 
 
-
-
-    // the fitness function is just the number of 1 in the bit string
-    
     /* =========================================================
      *
-     * Eval fitness function
+     * Full evaluation fitness function
      *
      * ========================================================= */
     datosFichero dataFile;  //Creo un objeto de mi clase
     dataFile.readData(argv); //Leo datos del fichero que se le pasa por parametro
     queenEval<Queen> fullEval; //Se crea la clase fullEval de tipo queenEval
     fullEval<<dataFile; //Paso los datos de mi clase fichero a la clase fullEval
-
-
     //queenEval<Queen> fullEval;
 
 
     /* =========================================================
      *
-     * Initilisation of the solution
+     * Initializer of a solution
      *
      * ========================================================= */
 
     eoInitPermutation<Queen> init(dataFile.getAlmacenes());
 
-    
-    
+
+    /* =========================================================
+     *
+     * Declare and init solutions
+     *
+     * ========================================================= */
+
+    Queen sol1;
+    Queen sol2;
+    Queen sol3;
+
+    //random initialization
+    init(sol1);
+    init(sol2);
+    init(sol3);
+
+    //evaluation
+    fullEval(sol1);
+    fullEval(sol2);
+    fullEval(sol3);
+
     /* =========================================================
      *
      * evaluation of a neighbor solution
@@ -154,15 +167,58 @@ void main_function(int argc, char **argv)
      *
      * ========================================================= */
 
-    rndShiftNeighborhood rndShiftNH((dataFile.getAlmacenes()-1) * (dataFile.getAlmacenes()-1));
+    orderShiftNeighborhood orderShiftNH((dataFile.getAlmacenes()-1) * (dataFile.getAlmacenes()-1));
 
     /* =========================================================
      *
-     * the local search algorithm
+     * Comparator of neighbors and solutions
      *
      * ========================================================= */
 
-    moSA<shiftNeighbor> localSearch1(rndShiftNH, fullEval, shiftEval);
+    moSolNeighborComparator<shiftNeighbor> solComparator;
+    moNeighborComparator<shiftNeighbor> comparator;
+
+    /* =========================================================
+     *
+     * tabu list
+     *
+     * ========================================================= */
+
+    moNeighborVectorTabuList<shiftNeighbor> tl(sizeTabuList,0);
+
+    /* =========================================================
+     *
+     * Memories
+     *
+     * ========================================================= */
+
+    moDummyIntensification<shiftNeighbor> inten;
+    moDummyDiversification<shiftNeighbor> div;
+    moBestImprAspiration<shiftNeighbor> asp;
+
+    /* =========================================================
+     *
+     * continuator
+     *
+     * ========================================================= */
+
+    moTimeContinuator<shiftNeighbor> continuator(timeLimit);
+
+
+    /* =========================================================
+     *
+     * the local search algorithms
+     *
+     * ========================================================= */
+
+    //Basic Constructor
+    moTS<shiftNeighbor> localSearch1(orderShiftNH, fullEval, shiftEval, 2, 7);
+
+    //Simple Constructor
+    moTS<shiftNeighbor> localSearch2(orderShiftNH, fullEval, shiftEval, 3, tl);
+
+    //General Constructor
+    moTS<shiftNeighbor> localSearch3(orderShiftNH, fullEval, shiftEval, comparator, solComparator, continuator, tl, inten, div, asp);
 
     /* =========================================================
      *
@@ -170,69 +226,33 @@ void main_function(int argc, char **argv)
      *
      * ========================================================= */
 
-    Queen solution1, solution2;
-
-    init(solution1);
-
-    fullEval(solution1);
-    
-    //cout <<"Aqui llego" << endl;
-
-    std::cout << "#########################################" << std::endl;
-    std::cout << "initial solution1: " << solution1 << std::endl ;
-
-    localSearch1(solution1);
-    
-    
-
-    std::cout << "final solution1: " << solution1 << std::endl ;
-    std::cout << "#########################################" << std::endl;
 
 
-    /* =========================================================
-     *
-     * the cooling schedule of the process
-     *
-     * ========================================================= */
 
-    // initial temp, factor of decrease, number of steps without decrease, final temp.
-    moSimpleCoolingSchedule<Queen> coolingSchedule(1, 0.9, 100, 0.01);
 
-    /* =========================================================
-     *
-     * Comparator of neighbors
-     *
-     * ========================================================= */
+    //Can be eval here, else it will be done at the beginning of the localSearch
+    //fullEval(solution);
 
-    moSolNeighborComparator<shiftNeighbor> solComparator;
 
-    /* =========================================================
-     *
-     * Example of Checkpointing
-     *
-     * ========================================================= */
+    //Run the three Tabu Search and print initial and final solutions
+    std::cout << "Tabu Search 1:" << std::endl;
+    std::cout << "--------------" << std::endl;
+    std::cout << "initial: " << sol1 << std::endl ;
+    localSearch1(sol1);
+    std::cout << "final:   " << sol1 << std::endl << std::endl;
 
-    moTrueContinuator<shiftNeighbor> continuator;//always continue
-    moCheckpoint<shiftNeighbor> checkpoint(continuator);
-    moFitnessStat<Queen> fitStat;
-    checkpoint.add(fitStat);
-    eoFileMonitor monitor("fitness.out", "");
-    moCounterMonitorSaver countMon(100, monitor);
-    checkpoint.add(countMon);
-    monitor.add(fitStat);
+    std::cout << "Tabu Search 2:" << std::endl;
+    std::cout << "--------------" << std::endl;
+    std::cout << "initial: " << sol2 << std::endl ;
+    localSearch2(sol2);
+    std::cout << "final:   " << sol2 << std::endl << std::endl;
 
-    moSA<shiftNeighbor> localSearch2(rndShiftNH, fullEval, shiftEval, coolingSchedule, solComparator, checkpoint);
+    std::cout << "Tabu Search 3:" << std::endl;
+    std::cout << "--------------" << std::endl;
+    std::cout << "initial: " << sol3 << std::endl ;
+    localSearch3(sol3);
+    std::cout << "final:   " << sol3 << std::endl ;
 
-    init(solution2);
-    fullEval(solution2);
-
-    std::cout << "#########################################" << std::endl;
-    std::cout << "initial solution2: " << solution2 << std::endl ;
-
-    localSearch2(solution2);
-
-    std::cout << "final solution2: " << solution2 << std::endl ;
-    std::cout << "#########################################" << std::endl;
 }
 
 // A main that catches the exceptions

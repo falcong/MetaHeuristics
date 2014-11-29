@@ -116,7 +116,7 @@ public:
       //cout << "Vamos niñoooo " << valorT << endl;
       
       //cout << "hola " << valorT*-1 << endl;
-      _sol.fitness(valorT); //El hill Climbing esta máximizando y yo lo que necesito es minimizar los costos, por lo tanto, multiplico por -1
+      _sol.fitness(valorT); //SOLUCIONADO**//El hill Climbing esta máximizando y yo lo que necesito es minimizar los costos, por lo tanto, multiplico por -1
       cout << _sol << endl;
       
 

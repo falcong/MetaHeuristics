@@ -1,15 +1,16 @@
 //-----------------------------------------------------------------------------
-/** testSimulatedAnnealing.cpp
+/** testILS.cpp
  *
- * SV - 29/03/10
- * JH - 20/04/10
+ * SV - 12/01/10
+ * JH - 04/05/10
+ *
  */
 //-----------------------------------------------------------------------------
 
 // standard includes
 #define HAVE_SSTREAM
 
-#include <stdexcept>  // runtime_error 
+#include <stdexcept>  // runtime_error
 #include <iostream>   // cout
 #include <sstream>  // ostrstream, istrstream
 #include <fstream>
@@ -18,6 +19,7 @@
 // the general include for eo
 #include <eo>
 #include <ga.h>
+#include <ga/eoBitOp.h>
 
 using namespace std;
 
@@ -34,33 +36,32 @@ using namespace std;
 
 //Neighbors and Neighborhoods
 #include <problems/permutation/moShiftNeighbor.h>
-#include <neighborhood/moRndWithReplNeighborhood.h>
+#include <neighborhood/moOrderNeighborhood.h>
+
+//Mutation
+#include <eoSwapMutation.h>
 
 //Algorithm and its components
-#include <coolingSchedule/moCoolingSchedule.h>
-#include <algo/moSA.h>
+#include <algo/moTS.h>
+#include <algo/moILS.h>
 
-//comparator
-#include <comparator/moSolNeighborComparator.h>
+//mo eval
+#include <eval/moFullEvalByCopy.h>
 
-//continuators
-#include <continuator/moTrueContinuator.h>
-#include <continuator/moCheckpoint.h>
-#include <continuator/moFitnessStat.h>
-#include <utils/eoFileMonitor.h>
-#include <continuator/moCounterMonitorSaver.h>
+#include <perturb/moMonOpPerturb.h>
+#include <perturb/moRestartPerturb.h>
+#include <perturb/moNeighborhoodPerturb.h>
+#include <acceptCrit/moAlwaysAcceptCrit.h>
+#include <acceptCrit/moBetterAcceptCrit.h>
 
-//INCLUYO MI CABECERA CON LA CLASE DONDE SE LEE EL FICHERO DE ENTRADA
-//#include "readFile.h"
+#include <continuator/moIterContinuator.h>
 
-
-//-----------------------------------------------------------------------------
-// Define types of the representation solution, different neighbors and neighborhoods
+// REPRESENTATION
 //-----------------------------------------------------------------------------
 typedef eoInt<eoMinimizingFitness> Queen; //Permutation (Queen's problem representation)
 
 typedef moShiftNeighbor<Queen> shiftNeighbor; //shift Neighbor
-typedef moRndWithReplNeighborhood<shiftNeighbor> rndShiftNeighborhood; //rnd shift Neighborhood (Indexed)
+typedef moOrderNeighborhood<shiftNeighbor> orderShiftNeighborhood; //order shift Neighborhood (Indexed)
 
 void main_function(int argc, char **argv)
 {
@@ -108,38 +109,51 @@ void main_function(int argc, char **argv)
      * ========================================================= */
 
     //reproducible random seed: if you don't change SEED above,
-    // you'll always get the same result, NOT a random run
+    // you'll aways get the same result, NOT a random run
     rng.reseed(seed);
 
 
-
-
-    // the fitness function is just the number of 1 in the bit string
-    
     /* =========================================================
      *
-     * Eval fitness function
+     * Full evaluation fitness function
      *
      * ========================================================= */
     datosFichero dataFile;  //Creo un objeto de mi clase
     dataFile.readData(argv); //Leo datos del fichero que se le pasa por parametro
     queenEval<Queen> fullEval; //Se crea la clase fullEval de tipo queenEval
     fullEval<<dataFile; //Paso los datos de mi clase fichero a la clase fullEval
-
-
     //queenEval<Queen> fullEval;
 
 
     /* =========================================================
      *
-     * Initilisation of the solution
+     * Initializer of a solution
      *
      * ========================================================= */
 
     eoInitPermutation<Queen> init(dataFile.getAlmacenes());
 
-    
-    
+
+    /* =========================================================
+     *
+     * Declare and init solutions
+     *
+     * ========================================================= */
+
+    Queen sol1;
+    Queen sol2;
+    Queen sol3;
+
+    //random initialization
+    init(sol1);
+    init(sol2);
+    init(sol3);
+
+    //evaluation
+    fullEval(sol1);
+    fullEval(sol2);
+    fullEval(sol3);
+
     /* =========================================================
      *
      * evaluation of a neighbor solution
@@ -154,85 +168,55 @@ void main_function(int argc, char **argv)
      *
      * ========================================================= */
 
-    rndShiftNeighborhood rndShiftNH((dataFile.getAlmacenes()-1) * (dataFile.getAlmacenes()-1));
-
-    /* =========================================================
-     *
-     * the local search algorithm
-     *
-     * ========================================================= */
-
-    moSA<shiftNeighbor> localSearch1(rndShiftNH, fullEval, shiftEval);
-
-    /* =========================================================
-     *
-     * execute the local search from random solution
-     *
-     * ========================================================= */
-
-    Queen solution1, solution2;
-
-    init(solution1);
-
-    fullEval(solution1);
-    
-    //cout <<"Aqui llego" << endl;
-
-    std::cout << "#########################################" << std::endl;
-    std::cout << "initial solution1: " << solution1 << std::endl ;
-
-    localSearch1(solution1);
-    
-    
-
-    std::cout << "final solution1: " << solution1 << std::endl ;
-    std::cout << "#########################################" << std::endl;
+    orderShiftNeighborhood orderShiftNH((dataFile.getAlmacenes()-1) * (dataFile.getAlmacenes()-1));
 
 
     /* =========================================================
      *
-     * the cooling schedule of the process
+     * the local search algorithms
      *
      * ========================================================= */
 
-    // initial temp, factor of decrease, number of steps without decrease, final temp.
-    moSimpleCoolingSchedule<Queen> coolingSchedule(1, 0.9, 100, 0.01);
+    //Basic Constructor of the Tabu Search
+    moTS<shiftNeighbor> ts(orderShiftNH, fullEval, shiftEval, 1, 7);
 
-    /* =========================================================
-     *
-     * Comparator of neighbors
-     *
-     * ========================================================= */
+    eoSwapMutation<Queen> mut;
 
-    moSolNeighborComparator<shiftNeighbor> solComparator;
+    //Basic Constructor of the Iterated Local Search
+    moILS<shiftNeighbor> localSearch1(ts, fullEval, mut, 3);
 
-    /* =========================================================
-     *
-     * Example of Checkpointing
-     *
-     * ========================================================= */
 
-    moTrueContinuator<shiftNeighbor> continuator;//always continue
-    moCheckpoint<shiftNeighbor> checkpoint(continuator);
-    moFitnessStat<Queen> fitStat;
-    checkpoint.add(fitStat);
-    eoFileMonitor monitor("fitness.out", "");
-    moCounterMonitorSaver countMon(100, monitor);
-    checkpoint.add(countMon);
-    monitor.add(fitStat);
+    //Simple Constructor of the Iterated Local Search
+    //Be carefull, template of the continuator must be a dummyNeighbor!!!
+    moIterContinuator<moDummyNeighbor<Queen> > cont(4, false);
+    moILS<shiftNeighbor> localSearch2(ts, fullEval, mut, cont);
 
-    moSA<shiftNeighbor> localSearch2(rndShiftNH, fullEval, shiftEval, coolingSchedule, solComparator, checkpoint);
+    //General Constructor of the Iterated Local Search
+    moMonOpPerturb<shiftNeighbor> perturb(mut, fullEval);
 
-    init(solution2);
-    fullEval(solution2);
+    moSolComparator<Queen> solComp;
+    moBetterAcceptCrit<shiftNeighbor> accept(solComp);
 
-    std::cout << "#########################################" << std::endl;
-    std::cout << "initial solution2: " << solution2 << std::endl ;
+    moILS<shiftNeighbor> localSearch3(ts, fullEval, cont, perturb, accept);
 
-    localSearch2(solution2);
+    std::cout << "Iterated Local Search 1:" << std::endl;
+    std::cout << "--------------" << std::endl;
+    std::cout << "initial: " << sol1 << std::endl ;
+    localSearch1(sol1);
+    std::cout << "final:   " << sol1 << std::endl << std::endl;
 
-    std::cout << "final solution2: " << solution2 << std::endl ;
-    std::cout << "#########################################" << std::endl;
+    std::cout << "Iterated Local Search 2:" << std::endl;
+    std::cout << "--------------" << std::endl;
+    std::cout << "initial: " << sol2 << std::endl ;
+    localSearch2(sol2);
+    std::cout << "final:   " << sol2 << std::endl << std::endl;
+
+    std::cout << "Iterated Local Search 3:" << std::endl;
+    std::cout << "--------------" << std::endl;
+    std::cout << "initial: " << sol3 << std::endl ;
+    localSearch3(sol3);
+    std::cout << "final:   " << sol3 << std::endl << std::endl;
+
 }
 
 // A main that catches the exceptions

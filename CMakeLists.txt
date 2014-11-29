@@ -58,6 +58,9 @@ ADD_EXECUTABLE(localizacion localizacion.cpp)
 ADD_EXECUTABLE(localizacionHCFirstImpr localizacionHCFirstImpr.cpp)
 ADD_EXECUTABLE(localizacionNeutralHC localizacionNeutralHC.cpp)
 ADD_EXECUTABLE(localizacionSA localizacionSA.cpp)
+ADD_EXECUTABLE(localizacionTS localizacionTS.cpp)
+ADD_EXECUTABLE(localizacionILS localizacionILS.cpp)
+ADD_EXECUTABLE(localizacionVNS localizacionVNS.cpp)
 ######################################################################################
 
 
@@ -70,6 +73,9 @@ TARGET_LINK_LIBRARIES(localizacion ga eo eoutils)
 TARGET_LINK_LIBRARIES(localizacionHCFirstImpr ga eo eoutils)
 TARGET_LINK_LIBRARIES(localizacionNeutralHC ga eo eoutils)
 TARGET_LINK_LIBRARIES(localizacionSA ga eo eoutils)
+TARGET_LINK_LIBRARIES(localizacionTS ga eo eoutils)
+TARGET_LINK_LIBRARIES(localizacionILS ga eo eoutils)
+TARGET_LINK_LIBRARIES(localizacionVNS ga eo eoutils)
 ######################################################################################
 
 

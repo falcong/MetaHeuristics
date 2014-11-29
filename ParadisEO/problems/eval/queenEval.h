@@ -31,7 +31,7 @@ Contact: paradiseo-help@lists.gforge.inria.fr
 #define _queenEval_h
 
 #include <eoEvalFunc.h>
-//#include </home/fizco/Documents/Practica Paradiseo/readFile.h>
+#include </home/fizco/git/MetaHeuristics/readFile.h>
 
 
 //class dataFile;
@@ -54,17 +54,17 @@ private:
 public:
 
 
-/*     void operator<< (datosFichero dF) {
+      void operator<< (datosFichero dF) {
 
-       almacenes = dF.getAlmacenes();
-       clientes = dF.getClientes();
+            almacenes = dF.getAlmacenes();
+            clientes = dF.getClientes();
 
-       distancias = dF.getDistancias();
-       almacen_cap = dF.getAlmacen_cap();
-       almacen_cost = dF.getAlmacen_cost();
-       demanda_clientes = dF.getDemanda_clientes();
+            distancias = dF.getDistancias();
+            almacen_cap = dF.getAlmacen_cap();
+            almacen_cost = dF.getAlmacen_cost();
+            demanda_clientes = dF.getDemanda_clientes();
 
-     }*/
+        }
 
       void operator() (EOT& _sol) {
 
@@ -107,8 +107,8 @@ public:
 
       //cout << "Vamos niñoooo " << valorT << endl;
 
-      _sol.fitness(valorT*-1); //El hill Climbing esta máximizando y yo lo que necesito es minimizar los costos, por lo tanto, multiplico por -1
-      cout << _sol << endl;
+      _sol.fitness(valorT); //El hill Climbing esta máximizando y yo lo que necesito es minimizar los costos, por lo tanto, multiplico por -1
+      //cout << _sol << endl;
 
 
 
