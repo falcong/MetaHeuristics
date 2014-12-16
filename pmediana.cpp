@@ -32,17 +32,16 @@ using namespace std;
 #include <ga/eoBit.h>                         // bit string : see also EO tutorial lesson 1: FirstBitGA.cpp
 #include <problems/bitString/moBitNeighbor.h> // neighbor of bit string
 
+
 //-----------------------------------------------------------------------------
 // fitness function, and evaluation of neighbors
-#include </home/fizco/Documents/Practica Paradiseo/ParadisEO/problems/eval/oneMaxEval.h>
-#include </home/fizco/Documents/Practica Paradiseo/ParadisEO/mo/src/problems/eval/moOneMaxIncrEval.h>
-#include </home/fizco/Documents/Practica Paradiseo/ParadisEO/mo/src/eval/moFullEvalByModif.h>
+#include </home/fizco/git/MetaHeuristics/ParadisEO/problems/eval/oneMaxEval.h>
+#include </home/fizco/git/MetaHeuristics/ParadisEO/mo/src/problems/eval/moOneMaxIncrEval.h>
+#include </home/fizco/git/MetaHeuristics/ParadisEO/mo/src/eval/moFullEvalByModif.h>
 
 //-----------------------------------------------------------------------------
 // neighborhood description
 #include <neighborhood/moOrderNeighborhood.h> // visit all neighbors in increasing order of bit index
-
-
 #include <neighborhood/moRndWithoutReplNeighborhood.h>//hill climbing valores random para el bitstring
 
 //-----------------------------------------------------------------------------
@@ -132,7 +131,7 @@ void main_function(int argc, char **argv)
     // the fitness function is just the number of 1 in the bit string
     datosFichero dataFile;  //Creo un objeto de mi clase
     dataFile.readData(argv); //Leo datos del fichero que se le pasa por parametro
-    oneMaxEval<Indi> fullEval; //Se crea la clase fullEval de tipo oneMaxEval
+    oneMaxEvalPmediana<Indi> fullEval; //Se crea la clase fullEval de tipo oneMaxEval
     fullEval << dataFile; //Paso los datos de mi clase fichero a la clase fullEval
 
     /* =========================================================

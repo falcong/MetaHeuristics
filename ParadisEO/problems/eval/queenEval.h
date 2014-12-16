@@ -31,6 +31,7 @@ Contact: paradiseo-help@lists.gforge.inria.fr
 #define _queenEval_h
 
 #include <eoEvalFunc.h>
+#include <limits.h>
 #include </home/fizco/git/MetaHeuristics/readFile.h>
 
 
@@ -39,6 +40,99 @@ Contact: paradiseo-help@lists.gforge.inria.fr
 /**
  * Full evaluation function for QUEEN problem
  */
+
+template< class EOT >
+class queenEvalPmediana : public eoEvalFunc<EOT>
+{
+
+private:
+
+     int almacenes, clientes;
+     vector< vector< float > > distancias;
+     vector< int > almacen_cap;
+     vector< int > almacen_cost;
+     vector< int > demanda_clientes;
+
+public:
+
+
+      void operator<< (datosFichero dF) {
+
+            almacenes = dF.getAlmacenes();
+            clientes = dF.getClientes();
+
+            distancias = dF.getDistancias();
+            almacen_cap = dF.getAlmacen_cap();
+            almacen_cost = dF.getAlmacen_cost();
+            demanda_clientes = dF.getDemanda_clientes();
+
+        }
+
+      void operator() (EOT& _sol) {
+
+      /*//FUNCION OBJETIVO --REVISAR
+      int valor = 0, minValor = 999999999, minDistancia = 0;
+      for (int i= 0;i<almacenes;i++) {
+	if (_sol[i] == 1) {
+	  valor = valor + almacen_cost[i];
+	  for (int j=0; j<clientes;j++) {
+	    valor = valor + distancias[i][j];
+	      if ()
+	    }
+	  }
+	}
+      }*/
+
+      float valorT = 0,  minDistancia = UINT_MAX, index_i = 0, index_j = 0;
+      for (int i=0; i<clientes;i++) {
+	for (int j=0;j<almacenes;j++) {
+	  if (_sol[j] == 1) {
+	    if (distancias[i][j] <= minDistancia) {
+	      //cout <<"Entro porque soy menor"<< endl;
+	      minDistancia = distancias[i][j];
+	      index_i = i;
+	      index_j = j;
+	    }
+	  }
+	}
+	minDistancia = UINT_MAX;
+	valorT += distancias[index_i][index_j];
+	//cout << "Este es mi valor actual: " << valorT << " Relativo: " << distancias[index_i][index_j]<<endl;
+      }
+
+      for (int i=0;i<almacenes;i++) {
+	  if (_sol[i] == 1) {
+	    valorT += almacen_cost[i];
+	    //cout << "Este es mi valor actual en almacenes: " << valorT << " Añadido: " << almacen_cost[i] << " en indice: "<< i <<endl;
+	  }
+      }
+
+      //cout << "Vamos niñoooo " << valorT << endl;
+
+      _sol.fitness(valorT); //El hill Climbing esta máximizando y yo lo que necesito es minimizar los costos, por lo tanto, multiplico por -1
+      cout << _sol << endl;
+
+
+
+    }
+/*public:
+
+	/**
+	 * Count number of threat
+	 * @param _queen a solution
+	 */
+    /*void operator()(EOT& _queen){
+    	  unsigned int fit=0;
+    	  for(unsigned int i=0; i<_queen.size()-1; i++)
+    		  for(unsigned int j=i+1; j< _queen.size(); j++)
+    			  if(((unsigned int)_queen[i]+j-i == (unsigned int)_queen[j]) || ((unsigned int)_queen[i]+i-j == (unsigned int)_queen[j]))
+    				  fit++;
+    	  _queen.fitness(fit);*/
+   /* }*/
+};
+
+
+
 template< class EOT >
 class queenEval : public eoEvalFunc<EOT>
 {
@@ -81,7 +175,7 @@ public:
 	}
       }*/
 
-      float valorT = 0,  minDistancia = 999999999, index_i = 0, index_j = 0;
+      float valorT = 0,  minDistancia = UINT_MAX, index_i = 0, index_j = 0;
       for (int i=0; i<clientes;i++) {
 	for (int j=0;j<almacenes;j++) {
 	  if (_sol[j] == 1) {
@@ -93,7 +187,7 @@ public:
 	    }
 	  }
 	}
-	minDistancia = 99999999;
+	minDistancia = UINT_MAX;
 	valorT += distancias[index_i][index_j];
 	//cout << "Este es mi valor actual: " << valorT << " Relativo: " << distancias[index_i][index_j]<<endl;
       }

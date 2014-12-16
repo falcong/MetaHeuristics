@@ -132,6 +132,8 @@ void main_function(int argc, char **argv)
     // the fitness function is just the number of 1 in the bit string
     datosFichero dataFile;  //Creo un objeto de mi clase
     dataFile.readData(argv); //Leo datos del fichero que se le pasa por parametro
+    
+    /*if (argv[2] == "hc")*/
     oneMaxEval<Indi> fullEval; //Se crea la clase fullEval de tipo oneMaxEval
     fullEval << dataFile; //Paso los datos de mi clase fichero a la clase fullEval
 
@@ -206,7 +208,6 @@ void main_function(int argc, char **argv)
 }
 
 //A main that catches the exceptions
-
 int main(int argc, char **argv)
 {
     try {

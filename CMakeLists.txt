@@ -61,6 +61,7 @@ ADD_EXECUTABLE(localizacionSA localizacionSA.cpp)
 ADD_EXECUTABLE(localizacionTS localizacionTS.cpp)
 ADD_EXECUTABLE(localizacionILS localizacionILS.cpp)
 ADD_EXECUTABLE(localizacionVNS localizacionVNS.cpp)
+ADD_EXECUTABLE(pmediana pmediana.cpp)
 ######################################################################################
 
 
@@ -76,6 +77,7 @@ TARGET_LINK_LIBRARIES(localizacionSA ga eo eoutils)
 TARGET_LINK_LIBRARIES(localizacionTS ga eo eoutils)
 TARGET_LINK_LIBRARIES(localizacionILS ga eo eoutils)
 TARGET_LINK_LIBRARIES(localizacionVNS ga eo eoutils)
+TARGET_LINK_LIBRARIES(pmediana ga eo eoutils)
 ######################################################################################
 
 
