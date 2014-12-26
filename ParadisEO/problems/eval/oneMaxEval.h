@@ -53,7 +53,7 @@ template< class EOT >
 class oneMaxEvalPmediana : public eoEvalFunc<EOT> {
     private:
   
-     int almacenes, clientes;
+     int almacenes, clientes, pmediana;
      vector< vector< float > > distancias;
      vector< int > almacen_cap;
      vector< int > almacen_cost;
@@ -62,6 +62,7 @@ class oneMaxEvalPmediana : public eoEvalFunc<EOT> {
 public:
   
   
+    void getPmediana (int p) {pmediana = p;}
      void operator<< (datosFichero dF) {
        
        almacenes = dF.getAlmacenes();
@@ -72,6 +73,20 @@ public:
        almacen_cost = dF.getAlmacen_cost();
        demanda_clientes = dF.getDemanda_clientes();
        
+     }
+     
+     bool countAlmacenes (EOT& _sol) {
+         int contador = 0;
+         for (int i=0; i<almacenes;i++) {
+             if (_sol[i] == 1) {
+                 contador++;
+             }
+         }
+         if (contador == pmediana) {
+             return true;
+         } else {
+             return false;
+         }
      }
      
      void operator() (EOT& _sol) { 
@@ -89,12 +104,16 @@ public:
 	}
       }*/
       
-      float valorT = 0,  minDistancia = UINT_MAX, index_i = 0, index_j = 0;
+      float valorT = 0,  minDistancia = UINT_MAX;
+      int index_i = 0, index_j = 0;
+      //bool existeValor = false;
+      
       for (int i=0; i<clientes;i++) {
 	for (int j=0;j<almacenes;j++) {
-	  if (_sol[j] == 1) {
+	  if ((_sol[j] == 1) && (countAlmacenes(_sol))) {
 	    if (distancias[i][j] <= minDistancia) {
 	      //cout <<"Entro porque soy menor"<< endl;
+              //existeValor = true;
 	      minDistancia = distancias[i][j];
 	      index_i = i;
 	      index_j = j;
@@ -102,7 +121,11 @@ public:
 	  }
 	}
 	minDistancia = UINT_MAX;
-	valorT += distancias[index_i][index_j];
+        //if (existeValor) {
+        valorT += distancias[index_i][index_j];
+           // existeValor = false;
+       // }
+	
 	//cout << "Este es mi valor actual: " << valorT << " Relativo: " << distancias[index_i][index_j]<<endl;
       }
       
