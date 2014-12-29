@@ -50,10 +50,6 @@ using namespace std;
 #include <utils/eoFileMonitor.h>
 #include <continuator/moCounterMonitorSaver.h>
 
-//INCLUYO MI CABECERA CON LA CLASE DONDE SE LEE EL FICHERO DE ENTRADA
-//#include "readFile.h"
-
-
 //-----------------------------------------------------------------------------
 // Define types of the representation solution, different neighbors and neighborhoods
 //-----------------------------------------------------------------------------

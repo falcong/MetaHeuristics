@@ -123,10 +123,12 @@ void main_function(int argc, char **argv)
      * ========================================================= */
     datosFichero dataFile;  //Creo un objeto de mi clase
     dataFile.readData(argv); //Leo datos del fichero que se le pasa por parametro
-    queenEval<Queen> fullEval; //Se crea la clase fullEval de tipo queenEval
-    fullEval<<dataFile; //Paso los datos de mi clase fichero a la clase fullEval
-
-
+    queenEvalPmediana<Queen> fullEval; //Se crea la clase fullEval de tipo oneMaxEval
+    fullEval << dataFile; //Paso los datos de mi clase fichero a la clase fullEval
+    
+    int pmediana = atoi(argv[2]);
+    cout << "Esta es la pmediana " << pmediana << endl;
+    fullEval.getPmediana(pmediana);
     //queenEval<Queen> fullEval;
 
 

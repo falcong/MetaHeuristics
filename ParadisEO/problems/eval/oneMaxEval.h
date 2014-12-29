@@ -75,7 +75,7 @@ public:
        
      }
      
-     bool countAlmacenes (EOT& _sol) {
+     bool pAlmacenes (EOT& _sol) {
          int contador = 0;
          for (int i=0; i<almacenes;i++) {
              if (_sol[i] == 1) {
@@ -108,27 +108,33 @@ public:
       int index_i = 0, index_j = 0;
       //bool existeValor = false;
       
-      for (int i=0; i<clientes;i++) {
-	for (int j=0;j<almacenes;j++) {
-	  if ((_sol[j] == 1) && (countAlmacenes(_sol))) {
-	    if (distancias[i][j] <= minDistancia) {
-	      //cout <<"Entro porque soy menor"<< endl;
-              //existeValor = true;
-	      minDistancia = distancias[i][j];
-	      index_i = i;
-	      index_j = j;
-	    }
-	  }
-	}
-	minDistancia = UINT_MAX;
-        //if (existeValor) {
-        valorT += distancias[index_i][index_j];
+      if (pAlmacenes(_sol)) {
+          
+        for (int i=0; i<clientes;i++) {
+            for (int j=0;j<almacenes;j++) {
+                if (_sol[j] == 1) {
+                    if (distancias[i][j] <= minDistancia) {
+                        //cout <<"Entro porque soy menor"<< endl;
+                        //existeValor = true;
+                        minDistancia = distancias[i][j];
+                        index_i = i;
+                        index_j = j;
+                    }
+                }
+            }
+            
+            minDistancia = UINT_MAX;
+            //if (existeValor) {
+            valorT += distancias[index_i][index_j];
            // existeValor = false;
        // }
 	
 	//cout << "Este es mi valor actual: " << valorT << " Relativo: " << distancias[index_i][index_j]<<endl;
+        }
+      } else {
+          //cout <<"Entro aqui por"<<endl;
+          valorT = UINT_MAX;
       }
-      
       /*for (int i=0;i<almacenes;i++) {
 	     if (_sol[i] == 1) {
 	        valorT += almacen_cost[i];
@@ -142,8 +148,6 @@ public:
       _sol.fitness(valorT); //SOLUCIONADO**//El hill Climbing esta máximizando y yo lo que necesito es minimizar los costos, por lo tanto, multiplico por -1
       cout << _sol << endl;
       
-
-  
     }    
 };
 
