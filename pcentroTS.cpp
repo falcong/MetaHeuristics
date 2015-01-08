@@ -1,16 +1,15 @@
 //-----------------------------------------------------------------------------
-/** testILS.cpp
+/** testSimpleHC.cpp
  *
  * SV - 12/01/10
- * JH - 04/05/10
- *
+ * JH - 03/05/10
  */
 //-----------------------------------------------------------------------------
 
 // standard includes
 #define HAVE_SSTREAM
 
-#include <stdexcept>  // runtime_error
+#include <stdexcept>  // runtime_error 
 #include <iostream>   // cout
 #include <sstream>  // ostrstream, istrstream
 #include <fstream>
@@ -19,7 +18,6 @@
 // the general include for eo
 #include <eo>
 #include <ga.h>
-#include <ga/eoBitOp.h>
 
 using namespace std;
 
@@ -38,23 +36,13 @@ using namespace std;
 #include <problems/permutation/moShiftNeighbor.h>
 #include <neighborhood/moOrderNeighborhood.h>
 
-//Mutation
-#include <eoSwapMutation.h>
-
 //Algorithm and its components
 #include <algo/moTS.h>
-#include <algo/moILS.h>
 
 //mo eval
+#include <eval/moFullEvalByModif.h>
 #include <eval/moFullEvalByCopy.h>
 
-#include <perturb/moMonOpPerturb.h>
-#include <perturb/moRestartPerturb.h>
-#include <perturb/moNeighborhoodPerturb.h>
-#include <acceptCrit/moAlwaysAcceptCrit.h>
-#include <acceptCrit/moBetterAcceptCrit.h>
-
-#include <continuator/moIterContinuator.h>
 
 // REPRESENTATION
 //-----------------------------------------------------------------------------
@@ -77,6 +65,7 @@ void main_function(int argc, char **argv)
     // For each parameter, define Parameter, read it through the parser,
     // and assign the value to the variable
 
+    // seed
     eoValueParam<uint32_t> seedParam(time(0), "seed", "Random number seed", 'S');
     parser.processParam( seedParam );
     unsigned seed = seedParam.value();
@@ -85,6 +74,16 @@ void main_function(int argc, char **argv)
     eoValueParam<unsigned int> vecSizeParam(8, "vecSize", "Genotype size", 'V');
     parser.processParam( vecSizeParam, "Representation" );
     unsigned vecSize = vecSizeParam.value();
+
+    // size tabu list
+    eoValueParam<unsigned int> sizeTabuListParam(7, "sizeTabuList", "size of the tabu list", 'T');
+    parser.processParam( sizeTabuListParam, "Search Parameters" );
+    unsigned sizeTabuList = sizeTabuListParam.value();
+
+    // time Limit
+    eoValueParam<unsigned int> timeLimitParam(1, "timeLimit", "time limits", 'T');
+    parser.processParam( timeLimitParam, "Search Parameters" );
+    unsigned timeLimit = timeLimitParam.value();
 
     // the name of the "status" file where all actual parameter values will be saved
     string str_status = parser.ProgramName() + ".status"; // default value
@@ -120,13 +119,14 @@ void main_function(int argc, char **argv)
      * ========================================================= */
     datosFichero dataFile;  //Creo un objeto de mi clase
     dataFile.readData(argv); //Leo datos del fichero que se le pasa por parametro
-    queenEvalPmediana<Queen> fullEval; //Se crea la clase fullEval de tipo oneMaxEval
+    queenEvalPcentro<Queen> fullEval; //Se crea la clase fullEval de tipo oneMaxEval
     fullEval << dataFile; //Paso los datos de mi clase fichero a la clase fullEval
     
-    int pmediana = atoi(argv[2]);
-    cout << "Esta es la pmediana " << pmediana << endl;
-    fullEval.setPmediana(pmediana);
+    int pcentro = atoi(argv[2]);
+    cout << "Esta es la pmediana " << pcentro << endl;
+    fullEval.getPcentro(pcentro);
     //queenEval<Queen> fullEval;
+    
     /* =========================================================
      *
      * Initializer of a solution
@@ -172,6 +172,41 @@ void main_function(int argc, char **argv)
 
     orderShiftNeighborhood orderShiftNH((dataFile.getAlmacenes()-1) * (dataFile.getAlmacenes()-1));
 
+    /* =========================================================
+     *
+     * Comparator of neighbors and solutions
+     *
+     * ========================================================= */
+
+    moSolNeighborComparator<shiftNeighbor> solComparator;
+    moNeighborComparator<shiftNeighbor> comparator;
+
+    /* =========================================================
+     *
+     * tabu list
+     *
+     * ========================================================= */
+
+    moNeighborVectorTabuList<shiftNeighbor> tl(sizeTabuList,0);
+
+    /* =========================================================
+     *
+     * Memories
+     *
+     * ========================================================= */
+
+    moDummyIntensification<shiftNeighbor> inten;
+    moDummyDiversification<shiftNeighbor> div;
+    moBestImprAspiration<shiftNeighbor> asp;
+
+    /* =========================================================
+     *
+     * continuator
+     *
+     * ========================================================= */
+
+    moTimeContinuator<shiftNeighbor> continuator(timeLimit);
+
 
     /* =========================================================
      *
@@ -179,45 +214,47 @@ void main_function(int argc, char **argv)
      *
      * ========================================================= */
 
-    //Basic Constructor of the Tabu Search
-    moTS<shiftNeighbor> ts(orderShiftNH, fullEval, shiftEval, 1, 7);
+    //Basic Constructor
+    moTS<shiftNeighbor> localSearch1(orderShiftNH, fullEval, shiftEval, 2, 7);
 
-    eoSwapMutation<Queen> mut;
+    //Simple Constructor
+    moTS<shiftNeighbor> localSearch2(orderShiftNH, fullEval, shiftEval, 3, tl);
 
-    //Basic Constructor of the Iterated Local Search
-    moILS<shiftNeighbor> localSearch1(ts, fullEval, mut, 3);
+    //General Constructor
+    moTS<shiftNeighbor> localSearch3(orderShiftNH, fullEval, shiftEval, comparator, solComparator, continuator, tl, inten, div, asp);
+
+    /* =========================================================
+     *
+     * execute the local search from random solution
+     *
+     * ========================================================= */
 
 
-    //Simple Constructor of the Iterated Local Search
-    //Be carefull, template of the continuator must be a dummyNeighbor!!!
-    moIterContinuator<moDummyNeighbor<Queen> > cont(4, false);
-    moILS<shiftNeighbor> localSearch2(ts, fullEval, mut, cont);
 
-    //General Constructor of the Iterated Local Search
-    moMonOpPerturb<shiftNeighbor> perturb(mut, fullEval);
 
-    moSolComparator<Queen> solComp;
-    moBetterAcceptCrit<shiftNeighbor> accept(solComp);
 
-    moILS<shiftNeighbor> localSearch3(ts, fullEval, cont, perturb, accept);
+    //Can be eval here, else it will be done at the beginning of the localSearch
+    //fullEval(solution);
 
-    std::cout << "Iterated Local Search 1:" << std::endl;
+
+    //Run the three Tabu Search and print initial and final solutions
+    std::cout << "Tabu Search 1:" << std::endl;
     std::cout << "--------------" << std::endl;
     std::cout << "initial: " << sol1 << std::endl ;
     localSearch1(sol1);
     std::cout << "final:   " << sol1 << std::endl << std::endl;
 
-    std::cout << "Iterated Local Search 2:" << std::endl;
+    std::cout << "Tabu Search 2:" << std::endl;
     std::cout << "--------------" << std::endl;
     std::cout << "initial: " << sol2 << std::endl ;
     localSearch2(sol2);
     std::cout << "final:   " << sol2 << std::endl << std::endl;
 
-    std::cout << "Iterated Local Search 3:" << std::endl;
+    std::cout << "Tabu Search 3:" << std::endl;
     std::cout << "--------------" << std::endl;
     std::cout << "initial: " << sol3 << std::endl ;
     localSearch3(sol3);
-    std::cout << "final:   " << sol3 << std::endl << std::endl;
+    std::cout << "final:   " << sol3 << std::endl ;
 
 }
 

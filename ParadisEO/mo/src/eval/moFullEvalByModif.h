@@ -60,7 +60,7 @@ public:
      * Full evaluation of the neighbor by copy
      * @param _sol current solution
      * @param _neighbor the neighbor to be evaluated
-     */
+     */  
     void operator()(EOT & _sol, BackableNeighbor & _neighbor)
     {
         // tmp fitness value of the current solution
@@ -72,24 +72,115 @@ public:
         // move the current solution wrt _neighbor
         _neighbor.move(_sol);
 
-        // eval the modified solution
-        _sol.invalidate();
-        eval(_sol);
+            // eval the modified solution
+           _sol.invalidate();
+           eval(_sol);
+           
+           // set the fitness value to the neighbor
+           _neighbor.fitness(_sol.fitness());
+           
+           // move the current solution back
+           _neighbor.moveBack(_sol);
 
-        // set the fitness value to the neighbor
-        _neighbor.fitness(_sol.fitness());
+           // set the fitness back
+           _sol.fitness(tmpFit);
+            
+            // move the current solution back
+            _neighbor.moveBack(_sol);
 
-        // move the current solution back
-        _neighbor.moveBack(_sol);
+            // set the fitness back
+            _sol.fitness(tmpFit);
+            
 
-        // set the fitness back
-        _sol.fitness(tmpFit);
+
+
     }
 
 
 private:
     /** the full evaluation object */
     eoEvalFunc<EOT> & eval;
+};
+
+template<class BackableNeighbor>
+class moFullEvalByModifCustom : public moEval<BackableNeighbor>
+{
+public:
+    typedef typename moEval<BackableNeighbor>::EOT EOT;
+    typedef typename moEval<BackableNeighbor>::Fitness Fitness;
+
+    /**
+     * Ctor
+     * @param _eval the full evaluation object
+     */
+    moFullEvalByModifCustom(eoEvalFunc<EOT>& _eval) : eval(_eval) {}
+
+    /**
+     * Full evaluation of the neighbor by copy
+     * @param _sol current solution
+     * @param _neighbor the neighbor to be evaluated
+     */
+    
+    void setPcentro(int p, int a) {pcentro = p, almacenes = a;}
+    bool pAlmacenes(EOT &_sol) {
+         int contador = 0;
+         for (int i=0; i<almacenes;i++) {
+            if (_sol[i] != 0) {
+               contador++;
+            }
+         }
+         if (contador == pcentro) {
+             return true;
+         } else {
+             return false;
+         }
+    }
+    
+    void operator()(EOT & _sol, BackableNeighbor & _neighbor)
+    {
+        // tmp fitness value of the current solution
+        Fitness tmpFit;
+
+        // save current fitness value
+        tmpFit = _sol.fitness();
+
+        // move the current solution wrt _neighbor
+        _neighbor.move(_sol);
+
+        /*Compruebo que para la pmediana y el pcentro solo se escogen los almacenes indicados*/
+        if (pAlmacenes(_sol)) {
+            // eval the modified solution
+           _sol.invalidate();
+           eval(_sol);
+           
+           // set the fitness value to the neighbor
+           _neighbor.fitness(_sol.fitness());
+           
+           // move the current solution back
+           _neighbor.moveBack(_sol);
+
+           // set the fitness back
+           _sol.fitness(tmpFit);
+           
+           
+        } else {
+            
+            // move the current solution back
+            _neighbor.moveBack(_sol);
+
+            // set the fitness back
+            _sol.fitness(tmpFit);
+            
+        }
+
+
+    }
+
+
+private:
+    /** the full evaluation object */
+    eoEvalFunc<EOT> & eval;
+    int pcentro, almacenes;
 
 };
 

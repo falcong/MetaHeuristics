@@ -32,17 +32,16 @@ using namespace std;
 #include <ga/eoBit.h>                         // bit string : see also EO tutorial lesson 1: FirstBitGA.cpp
 #include <problems/bitString/moBitNeighbor.h> // neighbor of bit string
 
+
 //-----------------------------------------------------------------------------
 // fitness function, and evaluation of neighbors
-#include </home/fizco/Documents/Practica Paradiseo/ParadisEO/problems/eval/oneMaxEval.h>
-#include </home/fizco/Documents/Practica Paradiseo/ParadisEO/mo/src/problems/eval/moOneMaxIncrEval.h>
-#include </home/fizco/Documents/Practica Paradiseo/ParadisEO/mo/src/eval/moFullEvalByModif.h>
+#include </home/fizco/git/MetaHeuristics/ParadisEO/problems/eval/oneMaxEval.h>
+#include </home/fizco/git/MetaHeuristics/ParadisEO/mo/src/problems/eval/moOneMaxIncrEval.h>
+#include </home/fizco/git/MetaHeuristics/ParadisEO/mo/src/eval/moFullEvalByModif.h>
 
 //-----------------------------------------------------------------------------
 // neighborhood description
 #include <neighborhood/moOrderNeighborhood.h> // visit all neighbors in increasing order of bit index
-
-
 #include <neighborhood/moRndWithoutReplNeighborhood.h>//hill climbing valores random para el bitstring
 
 //-----------------------------------------------------------------------------
@@ -132,8 +131,12 @@ void main_function(int argc, char **argv)
     // the fitness function is just the number of 1 in the bit string
     datosFichero dataFile;  //Creo un objeto de mi clase
     dataFile.readData(argv); //Leo datos del fichero que se le pasa por parametro
-    oneMaxEval<Indi> fullEval; //Se crea la clase fullEval de tipo oneMaxEval
+    oneMaxEvalPcentro<Indi> fullEval; //Se crea la clase fullEval de tipo oneMaxEval
     fullEval << dataFile; //Paso los datos de mi clase fichero a la clase fullEval
+    
+    int pcentro = atoi(argv[2]);
+    cout << "Esta es la pcentro " << pcentro << endl;
+    fullEval.setPcentro(pcentro);
 
     /* =========================================================
      *
@@ -153,11 +156,11 @@ void main_function(int argc, char **argv)
      * ========================================================= */
 
     // Use it if there is no incremental evaluation: a neighbor is evaluated by the full evaluation of a solution
-    moFullEvalByModif<Neighbor> neighborEval(fullEval);
-
+    moFullEvalByModifCustom<Neighbor> neighborEval(fullEval);
+    neighborEval.setPcentro(pcentro, fullEval.getAlmacenes());
     // Incremental evaluation of the neighbor: fitness is modified by +/- 1
     //moOneMaxIncrEval<Neighbor> neighborEval;
-
+    //neighborEval << dataFile;
     /* =========================================================
      *
      * the neighborhood of a solution
@@ -166,8 +169,8 @@ void main_function(int argc, char **argv)
 
     // Exploration of the neighborhood in increasing order of the neigbor's index:
     // bit-flip from bit 0 to bit (vecSize - 1)
-    moRndWithoutReplNeighborhood<Neighbor> neighborhood(dataFile.getAlmacenes());//Primera mejora HILL CLIMB
-    //moOrderNeighborhood<Neighbor> neighborhood(dataFile.getAlmacenes());
+    //moRndWithoutReplNeighborhood<Neighbor> neighborhood(dataFile.getAlmacenes());//Primera mejora HILL CLIMB
+    moOrderNeighborhood<Neighbor> neighborhood(dataFile.getAlmacenes());
 
     /* =========================================================
      *
@@ -175,8 +178,8 @@ void main_function(int argc, char **argv)
      *
      * ========================================================= */
 
-     moFirstImprHC<Neighbor> hc(neighborhood, fullEval, neighborEval);//Primera mejora HILL CLIMB
-     //moSimpleHC<Neighbor> hc(neighborhood, fullEval, neighborEval);
+     //moFirstImprHC<Neighbor> hc(neighborhood, fullEval, neighborEval);//Primera mejora HILL CLIMB
+     moSimpleHC<Neighbor> hc(neighborhood, fullEval, neighborEval);
 
     /* =========================================================
      *
@@ -186,7 +189,7 @@ void main_function(int argc, char **argv)
 
     // The current solution
     Indi solution;
-
+    
     // Apply random initialization
     random(solution);
 
@@ -206,6 +209,7 @@ void main_function(int argc, char **argv)
 }
 
 //A main that catches the exceptions
+
 int main(int argc, char **argv)
 {
     try {

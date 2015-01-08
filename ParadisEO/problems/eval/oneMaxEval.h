@@ -47,38 +47,29 @@ public:
  * Full evaluation Function for OneMax problem
  */
 
-
-
+/*Next class have necessary code for algorithm HC y SA. It have p-median evaluation function*/
 template< class EOT >
 class oneMaxEvalPmediana : public eoEvalFunc<EOT> {
-    private:
-  
-     int almacenes, clientes, pmediana;
-     vector< vector< float > > distancias;
-     vector< int > almacen_cap;
-     vector< int > almacen_cost;
-     vector< int > demanda_clientes; 
-  
-public:
-  
-  
-    void getPmediana (int p) {pmediana = p;}
-     void operator<< (datosFichero dF) {
-       
-       almacenes = dF.getAlmacenes();
-       clientes = dF.getClientes();
-       
-       distancias = dF.getDistancias();
-       almacen_cap = dF.getAlmacen_cap();
-       almacen_cost = dF.getAlmacen_cost();
-       demanda_clientes = dF.getDemanda_clientes();
-       
-     }
-     
-     bool pAlmacenes (EOT& _sol) {
+   private:
+      int almacenes, clientes, pmediana;
+      vector< vector< float > > distancias;
+      vector< int > almacen_cap;
+      vector< int > almacen_cost;
+      vector< int > demanda_clientes; 
+   public:
+      void getPmediana (int p) {pmediana = p;}
+      void operator<< (datosFichero dF) { 
+         almacenes = dF.getAlmacenes();
+         clientes = dF.getClientes();
+         distancias = dF.getDistancias();
+         almacen_cap = dF.getAlmacen_cap();
+         almacen_cost = dF.getAlmacen_cost();
+         demanda_clientes = dF.getDemanda_clientes();
+      }
+      bool pAlmacenes (EOT& _sol) {
          int contador = 0;
          for (int i=0; i<almacenes;i++) {
-             if (_sol[i] == 1) {
+             if (_sol[i] != 0) {
                  contador++;
              }
          }
@@ -87,30 +78,120 @@ public:
          } else {
              return false;
          }
-     }
-     
-     void operator() (EOT& _sol) { 
+      }
+      void operator() (EOT& _sol) { 
+         float valorT = 0,  minDistancia = UINT_MAX;
+         int index_i = 0, index_j = 0;
+         if (pAlmacenes(_sol)) { 
+            for (int i=0; i<clientes;i++) {
+               for (int j=0;j<almacenes;j++) {
+                  if (_sol[j] == 1) {
+                     if (distancias[i][j] <= minDistancia) {
+                        minDistancia = distancias[i][j];
+                        index_i = i;
+                        index_j = j;
+                     }
+                  }
+               }
+               minDistancia = UINT_MAX;
+               valorT += distancias[index_i][index_j];
+            }
+         } else {
+         valorT = UINT_MAX;
+      }
+      _sol.fitness(valorT); 
+      cout << _sol << endl;
+  
+     }    
+};
 
-      /*//FUNCION OBJETIVO --REVISAR
-      int valor = 0, minValor = 999999999, minDistancia = 0;
-      for (int i= 0;i<almacenes;i++) {
-	if (_sol[i] == 1) {
-	  valor = valor + almacen_cost[i];
-	  for (int j=0; j<clientes;j++) {
-	    valor = valor + distancias[i][j];
-	      if ()
+/*Next class have necessary code for algorithm HC y SA. It have SPLP/UFLP evaluation function*/
+template< class EOT >
+class oneMaxEval : public eoEvalFunc<EOT> {
+   private:
+      int almacenes, clientes;
+      vector< vector< float > > distancias;
+      vector< int > almacen_cap;
+      vector< int > almacen_cost;
+      vector< int > demanda_clientes;
+   public:
+      void operator<< (datosFichero dF) {
+         almacenes = dF.getAlmacenes();
+         clientes = dF.getClientes();
+         distancias = dF.getDistancias();
+         almacen_cap = dF.getAlmacen_cap();
+         almacen_cost = dF.getAlmacen_cost();
+         demanda_clientes = dF.getDemanda_clientes();
+      }
+      void operator() (EOT& _sol) {
+         float valorT = 0,  minDistancia = UINT_MAX, index_i = 0, index_j = 0;
+         for (int i=0; i<clientes;i++) {
+	    for (int j=0;j<almacenes;j++) {
+	       if (_sol[j] == 1) {
+	          if (distancias[i][j] <= minDistancia) {
+	             minDistancia = distancias[i][j];
+	             index_i = i;
+	             index_j = j;
+	          }
+	       }
 	    }
-	  }
-	}
-      }*/
-      
-      float valorT = 0,  minDistancia = UINT_MAX;
-      int index_i = 0, index_j = 0;
-      //bool existeValor = false;
-      
-      if (pAlmacenes(_sol)) {
+	    minDistancia = UINT_MAX;
+	    valorT += distancias[index_i][index_j];
+         }
+         for (int i=0;i<almacenes;i++) {
+	    if (_sol[i] == 1) {
+	       valorT += almacen_cost[i];
+	    }
+         }
+         _sol.fitness(valorT);
+         cout << _sol << endl;
+      }
+};
+
+/*Next class have necessary code for algorithm HC y SA. It have p-center evaluation function*/
+template< class EOT >
+class oneMaxEvalPcentro : public eoEvalFunc<EOT> {
+   private:
+      int almacenes, clientes, pcentro;
+      vector< vector< float > > distancias;
+      vector< int > almacen_cap;
+      vector< int > almacen_cost;
+      vector< int > demanda_clientes; 
+  
+   public:
+       
+       int getAlmacenes () {return almacenes;}
+       int getPcentro () {return pcentro;} 
+      void setPcentro (int p) {pcentro = p;}
+      void operator<< (datosFichero dF) { 
+         almacenes = dF.getAlmacenes();
+         clientes = dF.getClientes();
+         distancias = dF.getDistancias();
+         almacen_cap = dF.getAlmacen_cap();
+         almacen_cost = dF.getAlmacen_cost();
+        demanda_clientes = dF.getDemanda_clientes();
+      }
+     
+      bool pAlmacenes (EOT& _sol) {
+         int contador = 0;
+         for (int i=0; i<almacenes;i++) {
+            if (_sol[i] != 0) {
+               contador++;
+            }
+         }
+         if (contador == pcentro) {
+             return true;
+         } else {
+             return false;
+         }
+      }
+     
+      void operator() (EOT& _sol) { 
+         float valorT = 0,  minDistancia = UINT_MAX, maxDistancia = 0;
+         int index_i = 0, index_j = 0;
+         /*if (pAlmacenes(_sol)) {*/
           
-        for (int i=0; i<clientes;i++) {
+         for (int i=0; i<clientes;i++) {
             for (int j=0;j<almacenes;j++) {
                 if (_sol[j] == 1) {
                     if (distancias[i][j] <= minDistancia) {
@@ -122,126 +203,23 @@ public:
                     }
                 }
             }
+             minDistancia = UINT_MAX;
             
-            minDistancia = UINT_MAX;
-            //if (existeValor) {
-            valorT += distancias[index_i][index_j];
-           // existeValor = false;
-       // }
-	
-	//cout << "Este es mi valor actual: " << valorT << " Relativo: " << distancias[index_i][index_j]<<endl;
-        }
-      } else {
-          //cout <<"Entro aqui por"<<endl;
+            if (distancias[index_i][index_j] > maxDistancia) {
+                maxDistancia = distancias[index_i][index_j];
+            }
+            //maxDistancia = 0;
+            valorT = maxDistancia;
+
+         }
+         maxDistancia = 0;
+        
+      /*} else {
           valorT = UINT_MAX;
-      }
-      /*for (int i=0;i<almacenes;i++) {
-	     if (_sol[i] == 1) {
-	        valorT += almacen_cost[i];
-	       //cout << "Este es mi valor actual en almacenes: " << valorT << " Añadido: " << almacen_cost[i] << " en indice: "<< i <<endl;
-	     }
       }*/
-    
-      //cout << "Vamos niñoooo " << valorT << endl;
-      
-      //cout << "hola " << valorT*-1 << endl;
-      _sol.fitness(valorT); //SOLUCIONADO**//El hill Climbing esta máximizando y yo lo que necesito es minimizar los costos, por lo tanto, multiplico por -1
-      cout << _sol << endl;
-      
+      _sol.fitness(valorT); 
+      cout << _sol << endl;    
     }    
 };
-
-
-
-template< class EOT >
-class oneMaxEval : public eoEvalFunc<EOT>
-{
-  
-private:
-  
-     int almacenes, clientes;
-     vector< vector< float > > distancias;
-     vector< int > almacen_cap;
-     vector< int > almacen_cost;
-     vector< int > demanda_clientes; 
-  
-public:
-  
-  
-     void operator<< (datosFichero dF) {
-       
-       almacenes = dF.getAlmacenes();
-       clientes = dF.getClientes();
-       
-       distancias = dF.getDistancias();
-       almacen_cap = dF.getAlmacen_cap();
-       almacen_cost = dF.getAlmacen_cost();
-       demanda_clientes = dF.getDemanda_clientes();
-       
-     }
-
-	
-      void operator() (EOT& _sol) { 
-
-      /*//FUNCION OBJETIVO --REVISAR
-      int valor = 0, minValor = 999999999, minDistancia = 0;
-      for (int i= 0;i<almacenes;i++) {
-	if (_sol[i] == 1) {
-	  valor = valor + almacen_cost[i];
-	  for (int j=0; j<clientes;j++) {
-	    valor = valor + distancias[i][j];
-	      if ()
-	    }
-	  }
-	}
-      }*/
-      
-      float valorT = 0,  minDistancia = UINT_MAX, index_i = 0, index_j = 0;
-      for (int i=0; i<clientes;i++) {
-	for (int j=0;j<almacenes;j++) {
-	  if (_sol[j] == 1) {
-	    if (distancias[i][j] <= minDistancia) {
-	      //cout <<"Entro porque soy menor"<< endl;
-	      minDistancia = distancias[i][j];
-	      index_i = i;
-	      index_j = j;
-	    }
-	  }
-	}
-	minDistancia = UINT_MAX;
-	valorT += distancias[index_i][index_j];
-	//cout << "Este es mi valor actual: " << valorT << " Relativo: " << distancias[index_i][index_j]<<endl;
-      }
-      
-      for (int i=0;i<almacenes;i++) {
-	     if (_sol[i] == 1) {
-	        valorT += almacen_cost[i];
-	       //cout << "Este es mi valor actual en almacenes: " << valorT << " Añadido: " << almacen_cost[i] << " en indice: "<< i <<endl;
-	     }
-      }
-    
-      //cout << "Vamos niñoooo " << valorT << endl;
-      
-      //cout << "hola " << valorT*-1 << endl;
-      _sol.fitness(valorT); //SOLUCIONADO**//El hill Climbing esta máximizando y yo lo que necesito es minimizar los costos, por lo tanto, multiplico por -1
-      cout << _sol << endl;
-      
-
-  
-    }    
-    /**
-    * Count the number of 1 in a bitString
-    * @param _sol the solution to evaluate
-    */
-    /*void operator() (EOT& _sol) {
-        unsigned int sum = 0;
-        for (unsigned int i = 0; i < _sol.size(); i++)
-            sum += _sol[i];
-        _sol.fitness(sum);
-    }*/
- 
-
-};
-
 
 #endif

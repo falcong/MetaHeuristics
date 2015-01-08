@@ -124,7 +124,7 @@ void main_function(int argc, char **argv)
     
     int pmediana = atoi(argv[2]);
     cout << "Esta es la pmediana " << pmediana << endl;
-    fullEval.getPmediana(pmediana);
+    fullEval.setPmediana(pmediana);
     //queenEval<Queen> fullEval;
     
     /* =========================================================

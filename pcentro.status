@@ -2,10 +2,10 @@
 ### GENERAL ########################################################################
 # --help=0                                 # -h : Prints this message
 # --stopOnUnknownParam=1                   # Stop if unkown param entered
-# --seed=1419594560                        # -S : Random number seed
+# --seed=1420717854                        # -S : Random number seed
 
 ### PERSISTENCE ####################################################################
-# --status=./localizacionSA.status         # Status file
+# --status=./pcentro.status                # Status file
 
 ### REPRESENTATION #################################################################
-# --vecSize=8                              # -V : Genotype size
+# --vecSize=20                             # -V : Genotype size

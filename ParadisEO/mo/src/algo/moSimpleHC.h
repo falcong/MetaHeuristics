@@ -47,8 +47,7 @@ Contact: paradiseo-help@lists.gforge.inria.fr
  *   the algorithm stops when there is no higher neighbor
  */
 template<class Neighbor>
-class moSimpleHC: public moLocalSearch<Neighbor>
-{
+class moSimpleHC: public moLocalSearch<Neighbor> {
 public:
     typedef typename Neighbor::EOT EOT;
     typedef moNeighborhood<Neighbor> Neighborhood ;

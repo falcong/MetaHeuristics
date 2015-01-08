@@ -102,7 +102,7 @@ public:
 
             //eval the _solution moved with the neighbor and stock the result in the neighbor
             eval(_solution, currentNeighbor);
-
+            
             //initialize the best neighbor
             selectedNeighbor = currentNeighbor;
 
@@ -162,6 +162,5 @@ private:
     // true if the move is accepted
     bool isAccept ;
 };
-
 
 #endif

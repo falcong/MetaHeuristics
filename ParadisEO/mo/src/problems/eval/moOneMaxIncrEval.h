@@ -51,6 +51,69 @@ public:
             _neighbor.fitness(_solution.fitness() + 1);
         else
             _neighbor.fitness(_solution.fitness() - 1);
+        
+        cout << _solution << endl;
+    }
+
+};
+
+
+template< class Neighbor >
+class moOneMaxIncrEvalCustom : public moEval<Neighbor> {
+    
+    private :
+      int almacenes, clientes, pmediana, pcentro;
+      vector< vector< float > > distancias;
+      vector< int > almacen_cap;
+      vector< int > almacen_cost;
+      vector< int > demanda_clientes;
+        
+public:
+    typedef typename Neighbor::EOT EOT;   
+    
+    int getPmediana () {return pmediana;}
+    void setPmediana (int p) {pmediana = p;}
+    void operator<< (datosFichero dF) { 
+         almacenes = dF.getAlmacenes();
+         clientes = dF.getClientes();
+         distancias = dF.getDistancias();
+         almacen_cap = dF.getAlmacen_cap();
+         almacen_cost = dF.getAlmacen_cost();
+         demanda_clientes = dF.getDemanda_clientes();
+    }
+    
+    bool pAlmacenes (EOT& _sol) {
+         int contador = 0;
+         for (int i=0; i<almacenes;i++) {
+            if (_sol[i] != 0) {
+               contador++;
+            }
+         }
+         if (contador == pcentro) {
+             return true;
+         } else {
+             return false;
+         }
+      }
+    /*
+    * incremental evaluation of the neighbor for the oneMax problem
+    * @param _solution the solution to move (bit string)
+    * @param _neighbor the neighbor to consider (of type moBitNeigbor)
+    */
+    virtual void operator()(EOT & _solution, Neighbor & _neighbor) {
+        /*if (_solution[_neighbor.index()] == 0)
+            _neighbor.fitness(_solution.fitness() + 1);
+        else
+            _neighbor.fitness(_solution.fitness() - 1);*/
+        
+        if (pAlmacenes(_solution)) {
+            _neighbor.fitness(_solution.fitness() + 1);
+            cout << "entro bien"<< endl;
+        } else {
+            _neighbor.fitness(_solution.fitness() - 1);
+            
+        }
+        cout << _solution << endl;
     }
 };
 

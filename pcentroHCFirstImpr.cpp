@@ -34,9 +34,9 @@ using namespace std;
 
 //-----------------------------------------------------------------------------
 // fitness function, and evaluation of neighbors
-#include </home/fizco/Documents/Practica Paradiseo/ParadisEO/problems/eval/oneMaxEval.h>
-#include </home/fizco/Documents/Practica Paradiseo/ParadisEO/mo/src/problems/eval/moOneMaxIncrEval.h>
-#include </home/fizco/Documents/Practica Paradiseo/ParadisEO/mo/src/eval/moFullEvalByModif.h>
+#include </home/fizco/git/MetaHeuristics/ParadisEO/problems/eval/oneMaxEval.h>
+#include </home/fizco/git/MetaHeuristics/ParadisEO/mo/src/problems/eval/moOneMaxIncrEval.h>
+#include </home/fizco/git/MetaHeuristics/ParadisEO/mo/src/eval/moFullEvalByModif.h>
 
 //-----------------------------------------------------------------------------
 // neighborhood description
@@ -132,9 +132,12 @@ void main_function(int argc, char **argv)
     // the fitness function is just the number of 1 in the bit string
     datosFichero dataFile;  //Creo un objeto de mi clase
     dataFile.readData(argv); //Leo datos del fichero que se le pasa por parametro
-    oneMaxEval<Indi> fullEval; //Se crea la clase fullEval de tipo oneMaxEval
+    oneMaxEvalPcentro<Indi> fullEval; //Se crea la clase fullEval de tipo oneMaxEval
     fullEval << dataFile; //Paso los datos de mi clase fichero a la clase fullEval
-
+    
+    int pcentro = atoi(argv[2]);
+    cout << "Esta es la pmediana " << pcentro << endl;
+    fullEval.setPcentro(pcentro);
     /* =========================================================
      *
      * Initialization of the solution

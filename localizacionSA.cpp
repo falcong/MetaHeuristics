@@ -71,7 +71,6 @@ void main_function(int argc, char **argv)
 
     // For each parameter, define Parameter, read it through the parser,
     // and assign the value to the variable
-
     eoValueParam<uint32_t> seedParam(time(0), "seed", "Random number seed", 'S');
     parser.processParam( seedParam );
     unsigned seed = seedParam.value();
@@ -121,8 +120,6 @@ void main_function(int argc, char **argv)
     dataFile.readData(argv); //Leo datos del fichero que se le pasa por parametro
     queenEval<Queen> fullEval; //Se crea la clase fullEval de tipo queenEval
     fullEval<<dataFile; //Paso los datos de mi clase fichero a la clase fullEval
-
-
     //queenEval<Queen> fullEval;
 
 
