@@ -121,7 +121,7 @@ public:
      * @param _neighbor the neighbor to be evaluated
      */
     
-    void setPcentro(int p, int a) {pcentro = p, almacenes = a;}
+    void setP(int p, int a) {pcentro = p, almacenes = a;}
     bool pAlmacenes(EOT &_sol) {
          int contador = 0;
          for (int i=0; i<almacenes;i++) {

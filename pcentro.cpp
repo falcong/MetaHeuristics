@@ -157,7 +157,7 @@ void main_function(int argc, char **argv)
 
     // Use it if there is no incremental evaluation: a neighbor is evaluated by the full evaluation of a solution
     moFullEvalByModifCustom<Neighbor> neighborEval(fullEval);
-    neighborEval.setPcentro(pcentro, fullEval.getAlmacenes());
+    neighborEval.setP(pcentro, fullEval.getAlmacenes());
     // Incremental evaluation of the neighbor: fitness is modified by +/- 1
     //moOneMaxIncrEval<Neighbor> neighborEval;
     //neighborEval << dataFile;
