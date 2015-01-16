@@ -100,7 +100,7 @@ class oneMaxEvalPmediana : public eoEvalFunc<EOT> {
          valorT = UINT_MAX;
       }
       _sol.fitness(valorT); 
-      cout << _sol << endl;
+      //cout << _sol << endl;
   
      }    
 };
@@ -144,7 +144,7 @@ class oneMaxEval : public eoEvalFunc<EOT> {
 	    }
          }
          _sol.fitness(valorT);
-         cout << _sol << endl;
+         //cout << _sol << endl;
       }
 };
 
@@ -189,7 +189,8 @@ class oneMaxEvalPcentro : public eoEvalFunc<EOT> {
       void operator() (EOT& _sol) { 
          float valorT = 0,  minDistancia = UINT_MAX, maxDistancia = 0;
          int index_i = 0, index_j = 0;
-         /*if (pAlmacenes(_sol)) {*/
+         
+        if (pAlmacenes(_sol)) {
           
          for (int i=0; i<clientes;i++) {
             for (int j=0;j<almacenes;j++) {
@@ -214,11 +215,11 @@ class oneMaxEvalPcentro : public eoEvalFunc<EOT> {
          }
          maxDistancia = 0;
         
-      /*} else {
+        } else {
           valorT = UINT_MAX;
-      }*/
+      }
       _sol.fitness(valorT); 
-      cout << _sol << endl;    
+      //cout << _sol << endl;    
     }    
 };
 

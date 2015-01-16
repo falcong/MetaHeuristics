@@ -31,6 +31,7 @@ Contact: paradiseo-help@lists.gforge.inria.fr
 #define _moOneMaxIncrEval_H
 
 #include <eval/moEval.h>
+//#include </home/fizco/git/MetaHeuristics/readFile.h>
 
 /**
  * Incremental evaluation Function for the OneMax problem
@@ -52,16 +53,16 @@ public:
         else
             _neighbor.fitness(_solution.fitness() - 1);
         
-        cout << _solution << endl;
+        //cout << _solution << endl;
     }
 
 };
 
 
 template< class Neighbor >
-class moOneMaxIncrEvalCustom : public moEval<Neighbor> {
+class moOneMaxIncrEvalPcentro : public moEval<Neighbor> {
     
-    private :
+private :
       int almacenes, clientes, pmediana, pcentro;
       vector< vector< float > > distancias;
       vector< int > almacen_cap;
@@ -73,6 +74,7 @@ public:
     
     int getPmediana () {return pmediana;}
     void setPmediana (int p) {pmediana = p;}
+    
     void operator<< (datosFichero dF) { 
          almacenes = dF.getAlmacenes();
          clientes = dF.getClientes();
@@ -95,26 +97,63 @@ public:
              return false;
          }
       }
+
     /*
     * incremental evaluation of the neighbor for the oneMax problem
     * @param _solution the solution to move (bit string)
     * @param _neighbor the neighbor to consider (of type moBitNeigbor)
     */
-    virtual void operator()(EOT & _solution, Neighbor & _neighbor) {
-        /*if (_solution[_neighbor.index()] == 0)
+    virtual void operator()(EOT & _solution, Neighbor & _neighbor) {    
+
+        float valorT = 0,  minDistancia = UINT_MAX, maxDistancia = 0;
+        int index_i = 0, index_j = 0;
+         /*if (pAlmacenes(_sol)) {*/
+          
+         for (int i=0; i<clientes;i++) {
+            for (int j=0;j<almacenes;j++) {
+                if (_solution[j] == 1) {
+                    if (distancias[i][j] <= minDistancia) {
+                        //cout <<"Entro porque soy menor"<< endl;
+                        //existeValor = true;
+                        minDistancia = distancias[i][j];
+                        index_i = i;
+                        index_j = j;
+                    }
+                }
+            }
+             minDistancia = UINT_MAX;
+            
+            if (distancias[index_i][index_j] > maxDistancia) {
+                maxDistancia = distancias[index_i][index_j];
+            }
+            //maxDistancia = 0;
+            valorT = maxDistancia;
+
+         }
+         maxDistancia = 0;
+        
+      /*} else {
+          valorT = UINT_MAX;
+      }*/
+      _neighbor.fitness(valorT);
+      
+      cout << _solution << endl;
+      cout << _neighbor << endl;   
+        
+
+    /*            if (_solution[_neighbor.index()] == 0)
             _neighbor.fitness(_solution.fitness() + 1);
         else
-            _neighbor.fitness(_solution.fitness() - 1);*/
-        
-        if (pAlmacenes(_solution)) {
-            _neighbor.fitness(_solution.fitness() + 1);
-            cout << "entro bien"<< endl;
-        } else {
             _neighbor.fitness(_solution.fitness() - 1);
-            
-        }
+        
+                //_solution.fitness(_neighbor.fitness());
         cout << _solution << endl;
+        cout << _neighbor << endl;*/
+     
+
     }
+
+    
 };
 
 #endif

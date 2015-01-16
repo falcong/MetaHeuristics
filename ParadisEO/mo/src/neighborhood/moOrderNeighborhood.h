@@ -93,6 +93,7 @@ public:
 	virtual void next(EOT & _solution, Neighbor & _neighbor) {
 		currentIndex++;
 		_neighbor.index(_solution, currentIndex);
+                //cout <<"Moviemiento del siguiente "<<_solution<<endl;
 	}
 
 	/**
@@ -133,5 +134,123 @@ protected:
 	unsigned int currentIndex;
 
 };
+
+template<class Neighbor>
+class moPOrderNeighborhood: public moIndexNeighborhood<Neighbor> {
+public:
+
+	/**
+	 * Define type of a solution corresponding to Neighbor
+	 */
+	typedef typename Neighbor::EOT EOT;
+
+	using moIndexNeighborhood<Neighbor>::getNeighborhoodSize;
+
+	/**
+	 * Empty constructor
+	 */
+	moPOrderNeighborhood() :
+		moIndexNeighborhood<Neighbor>(0), currentIndex(0) {
+	}
+
+	/**
+	 * Constructor
+	 * @param _neighborhoodSize the size of the neighborhood
+	 */
+	moPOrderNeighborhood(unsigned int _neighborhoodSize) :
+		moIndexNeighborhood<Neighbor> (_neighborhoodSize), currentIndex(0) {
+	}
+        
+        
+        
+        
+        void setP(int _p) {p = _p;}
+        bool pAlmacenes(EOT &_sol) {
+            int contador = 0;
+            for (int i=0; i<getNeighborhoodSize();i++) {
+                if (_sol[i] != 0) {
+                    contador++;
+                }
+            }
+            if (contador == 2) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+	/**
+	 * Test if a neighbor exists
+	 * @param _solution the solution to explore
+	 * @return true if the neighborhood was not empty
+	 */
+	virtual bool hasNeighbor(EOT& _solution) {
+            //cout <<"compruebo si tiene vecino "<< pAlmacenes(_solution)<<endl;
+	  return (getNeighborhoodSize() > 0);// && (pAlmacenes(_solution)));
+	}
+
+	/**
+	 * Initialization of the neighborhood
+	 * @param _solution the solution to explore
+	 * @param _neighbor the first neighbor
+	 */
+	virtual void init(EOT & _solution, Neighbor & _neighbor) {
+		currentIndex = 0;
+		_neighbor.index(_solution, currentIndex);
+	}
+
+	/**
+	 * Give the next neighbor
+	 * @param _solution the solution to explore
+	 * @param _neighbor the next neighbor
+	 */
+	virtual void next(EOT & _solution, Neighbor & _neighbor) {
+            
+
+		currentIndex++;
+		_neighbor.index(_solution, currentIndex);
+
+	}
+
+	/**
+	 * test if all neighbors are explore or not,if false, there is no neighbor left to explore
+	 * currentIndex is the index which have been used before, it is not the next neighbor which can be possibly evaluated
+	 *
+	 * @param _solution the solution to explore
+	 * @return true if there is again a neighbor to explore
+	 */
+	virtual bool cont(EOT & _solution) {
+	  return (currentIndex < getNeighborhoodSize() - 1);
+	}
+
+	/**
+	 * Getter
+	 * @return the position in the Neighborhood
+	 */
+	inline unsigned int position() const {
+		return currentIndex;
+	}
+
+	/**
+	 * Setter the position in the Neighborhood
+	 */
+	void setPosition(unsigned int _currentIndex) {
+		 currentIndex=_currentIndex;
+	}
+
+	/**
+	 * Return the class Name
+	 * @return the class name as a std::string
+	 */
+	virtual std::string className() const {
+		return "moOrderNeighborhood";
+	}
+
+protected:
+	unsigned int currentIndex;
+        unsigned int a,p;
+
+};
+
 
 #endif

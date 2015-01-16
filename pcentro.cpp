@@ -43,12 +43,10 @@ using namespace std;
 // neighborhood description
 #include <neighborhood/moOrderNeighborhood.h> // visit all neighbors in increasing order of bit index
 #include <neighborhood/moRndWithoutReplNeighborhood.h>//hill climbing valores random para el bitstring
-
+#include <neighborhood/moDummyNeighborhood.h>
 //-----------------------------------------------------------------------------
 // the simple Hill-Climbing local search
 #include <algo/moSimpleHC.h>
-
-
 #include <algo/moFirstImprHC.h>//Hill climbing primera mejora
 
 // Declaration of types
@@ -58,7 +56,7 @@ typedef eoBit<eoMinimizingFitness> Indi;                      // bit string with
 // Neighbor is the typedef of the neighbor type,
 // Neighbor = How to compute the neighbor from the solution + information on it (i.e. fitness)
 // all classes from paradisEO-mo use this template type
-typedef moBitNeighbor<eoMinimizingFitness> Neighbor ;         // bit string neighbor with unsigned fitness type
+typedef moBitNeighbor<eoMinimizingFitness> Neighbor ; // bit string neighbor with unsigned fitness type
 
 
 //#include <eoEvalFunc.h>
@@ -154,12 +152,13 @@ void main_function(int argc, char **argv)
      * evaluation of a neighbor solution
      *
      * ========================================================= */
+    
 
     // Use it if there is no incremental evaluation: a neighbor is evaluated by the full evaluation of a solution
-    moFullEvalByModifCustom<Neighbor> neighborEval(fullEval);
-    neighborEval.setP(pcentro, fullEval.getAlmacenes());
+    moFullEvalByModif<Neighbor> neighborEval(fullEval);
+    //neighborEval.setP(pcentro, fullEval.getAlmacenes());
     // Incremental evaluation of the neighbor: fitness is modified by +/- 1
-    //moOneMaxIncrEval<Neighbor> neighborEval;
+    //moOneMaxIncrEvalPcentro<Neighbor> neighborEval;
     //neighborEval << dataFile;
     /* =========================================================
      *
@@ -171,7 +170,7 @@ void main_function(int argc, char **argv)
     // bit-flip from bit 0 to bit (vecSize - 1)
     //moRndWithoutReplNeighborhood<Neighbor> neighborhood(dataFile.getAlmacenes());//Primera mejora HILL CLIMB
     moOrderNeighborhood<Neighbor> neighborhood(dataFile.getAlmacenes());
-
+    //neighborhood.setP(pcentro);
     /* =========================================================
      *
      * the local search algorithm

@@ -100,11 +100,13 @@ public:
      * @param _solution the solution to explore
      */
     virtual void move(EOT& _solution) {
+        
+        //cout <<"Muevo el vecino"<<endl;
       // move the solution
       selectedNeighbor.move(_solution);
-
       // update the fitness
       _solution.fitness(selectedNeighbor.fitness());
+      
     }
 
     /**

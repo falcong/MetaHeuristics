@@ -116,11 +116,13 @@ public:
                 if (neighborComparator(selectedNeighbor, currentNeighbor)) {
                     selectedNeighbor = currentNeighbor;
                 }
+                
             }
 
         }
         else {
             //if _solution hasn't neighbor,
+            //cout << "Vecino no aceptado" << endl;
             isAccept=false;
         }
     };
@@ -142,6 +144,7 @@ public:
     virtual bool accept(EOT & _solution) {
         if (neighborhood.hasNeighbor(_solution)) {
             isAccept = solNeighborComparator(_solution, selectedNeighbor) ;
+            //cout <<"Hola"<<endl;
         }
         return isAccept;
     };

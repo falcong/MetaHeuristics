@@ -70,29 +70,23 @@ public:
         tmpFit = _sol.fitness();
 
         // move the current solution wrt _neighbor
+        //cout << "ME voy a mover" << endl;
+
         _neighbor.move(_sol);
+        //cout << "ME estoy moviendo" << endl;
 
             // eval the modified solution
-           _sol.invalidate();
-           eval(_sol);
+        _sol.invalidate();
+        eval(_sol);
            
-           // set the fitness value to the neighbor
-           _neighbor.fitness(_sol.fitness());
+        // set the fitness value to the neighbor
+        _neighbor.fitness(_sol.fitness());
            
-           // move the current solution back
-           _neighbor.moveBack(_sol);
+        // move the current solution back
+        _neighbor.moveBack(_sol);
 
-           // set the fitness back
-           _sol.fitness(tmpFit);
-            
-            // move the current solution back
-            _neighbor.moveBack(_sol);
-
-            // set the fitness back
-            _sol.fitness(tmpFit);
-            
-
-
+        // set the fitness back
+        _sol.fitness(tmpFit);
 
     }
 
@@ -101,6 +95,7 @@ private:
     /** the full evaluation object */
     eoEvalFunc<EOT> & eval;
 };
+
 
 template<class BackableNeighbor>
 class moFullEvalByModifCustom : public moEval<BackableNeighbor>
@@ -113,14 +108,13 @@ public:
      * Ctor
      * @param _eval the full evaluation object
      */
-    moFullEvalByModifCustom(eoEvalFunc<EOT>& _eval) : eval(_eval) {}
+   moFullEvalByModifCustom(eoEvalFunc<EOT>& _eval) : eval(_eval) {}
 
     /**
      * Full evaluation of the neighbor by copy
      * @param _sol current solution
      * @param _neighbor the neighbor to be evaluated
      */
-    
     void setP(int p, int a) {pcentro = p, almacenes = a;}
     bool pAlmacenes(EOT &_sol) {
          int contador = 0;
@@ -129,26 +123,33 @@ public:
                contador++;
             }
          }
-         if (contador == pcentro) {
+         if (contador == 2) {
              return true;
          } else {
              return false;
          }
     }
     
-    void operator()(EOT & _sol, BackableNeighbor & _neighbor)
+   void operator()(EOT & _sol, BackableNeighbor & _neighbor)
     {
         // tmp fitness value of the current solution
         Fitness tmpFit;
 
-        // save current fitness value
+        //save current fitness value
         tmpFit = _sol.fitness();
 
-        // move the current solution wrt _neighbor
+        //cout << "Me voy a mover" << endl;
+        
+        
+        //if (pAlmacenes(_sol)) {//Compruebo que para la pmediana y el pcentro solo se escogen los almacenes indicados*/
+        //_neighbor.setP(pcentro, almacenes);
+        // move the current solution _neighbor
         _neighbor.move(_sol);
-
-        /*Compruebo que para la pmediana y el pcentro solo se escogen los almacenes indicados*/
-        if (pAlmacenes(_sol)) {
+        //cout << "Me moví" << endl;
+        
+       
+            
+            _neighbor.setP(pcentro);
             // eval the modified solution
            _sol.invalidate();
            eval(_sol);
@@ -158,22 +159,25 @@ public:
            
            // move the current solution back
            _neighbor.moveBack(_sol);
+           //cout << "Me moví atras"<< endl;
 
            // set the fitness back
            _sol.fitness(tmpFit);
            
            
-        } else {
-            
-            // move the current solution back
-            _neighbor.moveBack(_sol);
-
-            // set the fitness back
+       // } else {
+       /*     _neighbor.moveBack (_sol);
+            cout << "Me moví atras"<< endl;
             _sol.fitness(tmpFit);
+            cout << "Este no va amigos"<< endl;
+        }*/
             
-        }
+     /*   // move the current solution back
+        _neighbor.moveBack(_sol);
 
-
+        // set the fitness back
+        _sol.fitness(tmpFit);
+        */
     }
 
 

@@ -2,7 +2,7 @@
 ### GENERAL ########################################################################
 # --help=0                                 # -h : Prints this message
 # --stopOnUnknownParam=1                   # Stop if unkown param entered
-# --seed=1419594560                        # -S : Random number seed
+# --seed=1421413207                        # -S : Random number seed
 
 ### PERSISTENCE ####################################################################
 # --status=./localizacionSA.status         # Status file
